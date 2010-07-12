@@ -94,9 +94,7 @@ public class DbMigrator {
      * @throws Exception Thrown when a migration failed.
      */
     public int migrate() throws Exception {
-        if (!metaDataTable.exists()) {
-            metaDataTable.create();
-        }
+        metaDataTable.init(null);
 
         final List<Migration> allMigrations = findAvailableMigrations();
 
@@ -127,7 +125,7 @@ public class DbMigrator {
                     LOG.info(String.format("Finished migrating to version %s - %s (execution time %s)",
                             migration.getVersion(), migration.getScriptName(), LogTimer.format(migration.getExecutionTime())));
 
-                    metaDataTable.migrationFinished(migration);
+                    metaDataTable.finishMigration(migration);
 
                     migration.assertNotFailed();
 

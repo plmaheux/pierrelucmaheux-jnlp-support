@@ -26,6 +26,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test to demonstrate the migration functionality using Mysql.
  */
+@SuppressWarnings({"JavaDoc"})
 @ContextConfiguration(locations = {"classpath:migration/mysql/mysql-context.xml"})
 public class MySQLMigrationMediumTest extends MigrationTestCase {
     @Override

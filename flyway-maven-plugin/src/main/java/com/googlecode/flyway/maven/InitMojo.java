@@ -27,6 +27,7 @@ import com.googlecode.flyway.core.migration.SchemaVersion;
  * @configurator include-project-dependencies
  * @since 0.8.5
  */
+@SuppressWarnings({"UnusedDeclaration"})
 public class InitMojo extends AbstractFlywayMojo {
     /**
      * The initial version to put in the database. (default: 0) <br>

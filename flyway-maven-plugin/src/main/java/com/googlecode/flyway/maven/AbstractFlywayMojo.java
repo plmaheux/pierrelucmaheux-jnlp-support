@@ -99,6 +99,7 @@ abstract class AbstractFlywayMojo extends AbstractMojo {
 
     /**
      * @see org.apache.maven.plugin.AbstractMojo#execute()
+     * @throws Exception any exception
      */
     protected abstract void doExecute() throws Exception;
 }

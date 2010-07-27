@@ -30,6 +30,7 @@ import java.util.List;
  * @configurator include-project-dependencies
  * @since 0.9
  */
+@SuppressWarnings({"UnusedDeclaration"})
 public class HistoryMojo extends AbstractFlywayMojo {
     @Override
     protected void doExecute() throws MojoExecutionException {

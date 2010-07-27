@@ -31,6 +31,7 @@ import java.util.List;
  * @configurator include-project-dependencies
  * @since 0.8
  */
+@SuppressWarnings({"UnusedDeclaration"})
 public class StatusMojo extends AbstractFlywayMojo {
     @Override
     protected void doExecute() throws MojoExecutionException {

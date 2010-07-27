@@ -16,8 +16,10 @@
 
 package com.googlecode.flyway.core.dbsupport.oracle;
 
+import com.googlecode.flyway.core.migration.Migration;
 import com.googlecode.flyway.core.migration.MigrationTestCase;
 import com.googlecode.flyway.core.migration.SchemaVersion;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
@@ -25,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -32,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Test to demonstrate the migration functionality using Mysql.
  */
+@SuppressWarnings({"JavaDoc"})
 @ContextConfiguration(locations = {"classpath:migration/oracle/oracle-context.xml"})
 public class OracleMigrationMediumTest extends MigrationTestCase {
     @Autowired
@@ -64,6 +68,12 @@ public class OracleMigrationMediumTest extends MigrationTestCase {
 
         int countUserObjects = jdbcTemplate.queryForInt("SELECT count(*) FROM user_objects");
         assertEquals(0, countUserObjects);
+
+        final List<Migration> migrationList = flyway.history();
+        for (Migration migration : migrationList) {
+            Assert.assertNotNull(migration.getScriptName() + " has no checksum", migration.getChecksum());
+        }
+
     }
 
     /**

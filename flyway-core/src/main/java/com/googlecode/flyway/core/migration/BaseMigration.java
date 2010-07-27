@@ -26,8 +26,8 @@ public abstract class BaseMigration extends Migration {
 	 * Initializes the version of this Migration based on this standard Flyway
 	 * name.
 	 * 
-	 * @param migrationName
-	 *            The migration name in standard Flyway format without any pre- or suffixes. Ex.: 1_2__Description .
+	 * @param migrationName The migration name in standard Flyway format '<VERSION>__<DESCRIPTION>, e.g. 1_2__Description
+	 *            The migration name in standard Flyway format. Ex.:
 	 */
 	protected final void initVersion(String migrationName) {
 		schemaVersion = extractSchemaVersion(migrationName);
@@ -55,6 +55,6 @@ public abstract class BaseMigration extends Migration {
 			rawVersion = migrationName.substring(0, descriptionPos);
 		}
 
-		return new SchemaVersion(rawVersion, description);
+		return new SchemaVersion(rawVersion.replace("_", "."), description);
 	}
 }

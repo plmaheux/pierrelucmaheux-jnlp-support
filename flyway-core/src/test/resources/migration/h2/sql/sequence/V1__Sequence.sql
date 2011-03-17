@@ -14,5 +14,5 @@
 -- limitations under the License.
 --
 
-DROP DATABASE flyway_db;
-DROP USER 'flyway'@'localhost';
+CREATE CONSTANT the_number VALUE 666;
+CREATE SEQUENCE the_beast START WITH the_number;

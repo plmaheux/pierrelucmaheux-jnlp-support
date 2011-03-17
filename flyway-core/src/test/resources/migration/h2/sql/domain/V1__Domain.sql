@@ -14,5 +14,12 @@
 -- limitations under the License.
 --
 
-DROP DATABASE flyway_db;
-DROP USER 'flyway'@'localhost';
+CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1);
+
+CREATE TABLE test_user (
+  name VARCHAR(100) NOT NULL,
+  address EMAIL NOT NULL,
+  PRIMARY KEY(name)
+);
+
+INSERT INTO test_user (name, address) VALUES ('Axel', 'axel@spam.la');

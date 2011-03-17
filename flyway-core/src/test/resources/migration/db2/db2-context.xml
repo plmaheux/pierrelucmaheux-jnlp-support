@@ -18,29 +18,13 @@
 -->
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-    
-    <!-- would like to use this, but ignore-resource-not-found is only present in Spring 3 -->
-    <!--  <context:property-placeholder location="classpath:db2-standard.properties,file:${user.home}/db2-custom.properties" ignore-resource-not-found="true"/> -->
-    <bean id="propertyConfigurer"
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="locations">
-			<list>
-				<value>classpath:migration/db2/db2-standard.properties</value>
-				<value>file:${user.home}/flyway-db-custom.properties</value> <!-- second place, so they take precedence, if present -->
-			</list>
-		</property>
-		<!-- ignore if custom properties cannot be found, then the standard props will be taken -->
-		<property name="ignoreResourceNotFound" value="true" />
-	</bean>
-       
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
     <bean id="ddlDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-        <property name="username" value="${db2.username}"/>
-        <property name="password" value="${db2.password}"/>
+        <property name="username" value="db2admin"/>
+        <property name="password" value="flyway"/>
         <property name="driverClassName" value="com.ibm.db2.jcc.DB2Driver"/>
-        <property name="url" value="jdbc:db2://${db2.host}:${db2.port}/${db2.flywayDbName}"/>
+        <property name="url" value="jdbc:db2://localhost:50000/flyway"/>
         <property name="initialSize" value="1"/>
         <property name="maxActive" value="100"/>
     </bean>

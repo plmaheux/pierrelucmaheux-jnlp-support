@@ -23,7 +23,7 @@ import com.googlecode.flyway.core.migration.sql.SqlScript;
  * 
  * TODO Support for Procedures.
  */
-public class Db2SqlScript extends SqlScript
+public class DB2SqlScript extends SqlScript
 {
 
 	/**
@@ -37,9 +37,7 @@ public class Db2SqlScript extends SqlScript
 	 * @throws IllegalStateException
 	 *             Thrown when the script could not be read from this resource.
 	 */
-	public Db2SqlScript(String sqlScriptSource, PlaceholderReplacer placeholderReplacer)
-	{
+	public DB2SqlScript(String sqlScriptSource, PlaceholderReplacer placeholderReplacer) {
 		super(sqlScriptSource, placeholderReplacer);
 	}
-
 }

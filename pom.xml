@@ -108,8 +108,8 @@
             </dependency>
             <dependency>
                 <groupId>com.ibm.db2</groupId>
-                <artifactId>db2jcc</artifactId>
-                <version>3.57.82</version>
+                <artifactId>db2jcc4</artifactId>
+                <version>4.9.78</version>
                 <optional>true</optional>
             </dependency>
             <dependency>

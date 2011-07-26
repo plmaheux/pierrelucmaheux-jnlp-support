@@ -112,11 +112,11 @@ abstract class AbstractFlywayMojo extends AbstractMojo {
     private String serverId;
 
     /**
-     * Load username and password from settings.xml
+     * Load username password from settings
      *
-     * @throws MojoExecutionException
+     * @throws MojoExecutionException when the credentials could not be loaded.
      */
-    private void loadCredentialsFromSettings() {
+    private void loadCredentialsFromSettings() throws MojoExecutionException {
         if (user == null) {
             final String id = serverId != null ? serverId : url;
             final Server server = settings.getServer(id);

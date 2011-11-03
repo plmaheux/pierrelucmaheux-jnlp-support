@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.flyway.maven.largetest</groupId>
-    <artifactId>regular</artifactId>
+    <artifactId>validate</artifactId>
     <version>${flyway.version}</version>
     <packaging>jar</packaging>
     <name>${project.artifactId}</name>
@@ -30,7 +30,7 @@
                 <version>${flyway.version}</version>
                 <configuration>
                     <driver>org.hsqldb.jdbcDriver</driver>
-                    <url>jdbc:hsqldb:file:${project.build.directory}/db/flyway_sample;shutdown=true</url>
+                    <url>jdbc:hsqldb:file:${basedir}/flyway_sample;shutdown=true</url>
                     <user>SA</user>
                 </configuration>
             </plugin>

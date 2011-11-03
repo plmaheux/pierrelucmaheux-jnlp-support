@@ -30,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Large Test for the Flyway Maven Plugin.
  */
+@SuppressWarnings({"JavaDoc"})
 public class MavenLargeTest {
     /**
      * The installation directory for the test POMs.
@@ -38,13 +39,25 @@ public class MavenLargeTest {
 
     @Test
     public void regular() throws Exception {
-        String stdOut = runMaven("regular");
+        String stdOut = runMaven(0, "regular", "flyway:init", "flyway:status");
         assertTrue(stdOut.contains("<< Flyway Init >>"));
     }
 
     @Test
+    public void migrate() throws Exception {
+        String stdOut = runMaven(0, "regular", "compile", "flyway:migrate");
+        assertTrue(stdOut.contains("Successfully applied 2 migrations"));
+    }
+
+    @Test
+    public void validate() throws Exception {
+        String stdOut = runMaven(1, "validate", "compile", "flyway:validate");
+        assertTrue(stdOut.contains("Validate failed. Found differences between applied migrations and available migrations"));
+    }
+
+    @Test
     public void settings() throws Exception {
-        String stdOut = runMaven("settings", "-s", installDir + "/settings/settings.xml");
+        String stdOut = runMaven(0, "settings", "flyway:init", "flyway:status", "-s", installDir + "/settings/settings.xml");
         assertTrue(stdOut.contains("<< Flyway Init >>"));
     }
 
@@ -53,19 +66,20 @@ public class MavenLargeTest {
      */
     @Test
     public void settingsDefault() throws Exception {
-        String stdOut = runMaven("settings-default", "-s", installDir + "/settings-default/settings.xml");
+        String stdOut = runMaven(0, "settings-default", "flyway:init", "flyway:status", "-s", installDir + "/settings-default/settings.xml");
         assertTrue(stdOut.contains("<< Flyway Init >>"));
     }
 
     /**
      * Runs Maven in this directory with these extra arguments.
      *
-     * @param dir       The directory below src/test/resources to run maven in.
-     * @param extraArgs The extra arguments (if any) for Maven.
+     * @param expectedReturnCode The expected return code for this invocation.
+     * @param dir                The directory below src/test/resources to run maven in.
+     * @param extraArgs          The extra arguments (if any) for Maven.
      * @return The standard output.
      * @throws Exception When the execution failed.
      */
-    private String runMaven(String dir, String... extraArgs) throws Exception {
+    private String runMaven(int expectedReturnCode, String dir, String... extraArgs) throws Exception {
         String m2Home = System.getenv("M2_HOME");
         String flywayVersion = System.getProperty("flywayVersion");
 
@@ -77,8 +91,6 @@ public class MavenLargeTest {
         List<String> args = new ArrayList<String>();
         args.add(m2Home + "/bin/mvn" + extension);
         args.add("-Dflyway.version=" + flywayVersion);
-        args.add("flyway:init");
-        args.add("flyway:status");
         args.addAll(Arrays.asList(extraArgs));
 
         ProcessBuilder builder = new ProcessBuilder(args);
@@ -91,7 +103,7 @@ public class MavenLargeTest {
 
         System.out.print(stdOut);
 
-        assertEquals(0, returnCode);
+        assertEquals(expectedReturnCode, returnCode);
 
         return stdOut;
     }

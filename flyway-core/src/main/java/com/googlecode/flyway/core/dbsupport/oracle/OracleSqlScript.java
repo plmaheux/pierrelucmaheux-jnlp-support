@@ -17,7 +17,7 @@ package com.googlecode.flyway.core.dbsupport.oracle;
 
 import com.googlecode.flyway.core.migration.sql.PlaceholderReplacer;
 import com.googlecode.flyway.core.migration.sql.SqlScript;
-import org.springframework.util.StringUtils;
+import com.googlecode.flyway.core.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,10 +50,12 @@ public class OracleSqlScript extends SqlScript {
         }
 
         String upperCaseStatement = statement.toUpperCase();
-        if (upperCaseStatement.startsWith("CREATE")
-                && (upperCaseStatement.matches(".*\\WFUNCTION(\\W.*|$)")
-                || upperCaseStatement.matches(".*\\WPROCEDURE(\\W.*|$)")
-                || upperCaseStatement.matches(".*\\WPACKAGE(\\W.*|$)"))) {
+        if (upperCaseStatement.matches("CREATE\\W*FUNCTION.*")
+                || upperCaseStatement.matches("CREATE\\W+PROCEDURE.*")
+                || upperCaseStatement.matches("CREATE\\W+PACKAGE.*")
+                || upperCaseStatement.matches("CREATE\\W+OR\\W+REPLACE\\W+FUNCTION.*")
+                || upperCaseStatement.matches("CREATE\\W+OR\\W+REPLACE\\W+PROCEDURE.*")
+                || upperCaseStatement.matches("CREATE\\W+OR\\W+REPLACE\\W+PACKAGE.*")) {
             return PLSQL_DELIMITER;
         }
 

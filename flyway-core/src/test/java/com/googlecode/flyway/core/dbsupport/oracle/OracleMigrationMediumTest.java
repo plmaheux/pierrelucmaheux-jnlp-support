@@ -15,18 +15,18 @@
  */
 package com.googlecode.flyway.core.dbsupport.oracle;
 
-import com.googlecode.flyway.core.dbsupport.DbSupport;
 import com.googlecode.flyway.core.exception.FlywayException;
 import com.googlecode.flyway.core.metadatatable.MetaDataTableRow;
 import com.googlecode.flyway.core.migration.MigrationTestCase;
 import com.googlecode.flyway.core.migration.SchemaVersion;
+import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
 
+import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -36,8 +36,16 @@ import static org.junit.Assert.assertTrue;
  * Test to demonstrate the migration functionality using Mysql.
  */
 @SuppressWarnings({"JavaDoc"})
-@ContextConfiguration(locations = {"classpath:migration/dbsupport/oracle/oracle-context.xml"})
 public class OracleMigrationMediumTest extends MigrationTestCase {
+    @Override
+    protected DataSource createDataSource(Properties customProperties) throws Exception {
+        String user = customProperties.getProperty("oracle.user", "flyway");
+        String password = customProperties.getProperty("orcale.password", "flyway");
+        String url = customProperties.getProperty("oracle.url", "jdbc:oracle:thin:@localhost:1521:XE");
+
+        return new DriverDataSource("oracle.jdbc.OracleDriver", url, user, password);
+    }
+
     @Override
     protected String getQuoteBaseDir() {
         return "migration/quote";
@@ -47,7 +55,7 @@ public class OracleMigrationMediumTest extends MigrationTestCase {
      * Tests migrations containing placeholders.
      */
     @Test
-    public void migrationsWithPlaceholders() throws FlywayException {
+    public void migrationsWithPlaceholders() throws Exception {
         int countUserObjects1 = jdbcTemplate.queryForInt("SELECT count(*) FROM user_objects");
 
         Map<String, String> placeholders = new HashMap<String, String>();
@@ -60,7 +68,7 @@ public class OracleMigrationMediumTest extends MigrationTestCase {
         assertEquals("1.1", schemaVersion.toString());
         assertEquals("Populate table", flyway.status().getDescription());
 
-        assertEquals("Mr. T triggered", jdbcTemplate.queryForObject("select name from test_user", String.class));
+        assertEquals("Mr. T triggered", jdbcTemplate.queryForString("select name from test_user"));
 
         flyway.clean();
 
@@ -77,7 +85,7 @@ public class OracleMigrationMediumTest extends MigrationTestCase {
      * Tests clean for Oracle Spatial Extensions.
      */
     @Test
-    public void cleanSpatialExtensions() throws FlywayException {
+    public void cleanSpatialExtensions() throws Exception {
         assertEquals(0, objectsCount());
 
         flyway.setBaseDir("migration/dbsupport/oracle/sql/spatial");
@@ -102,7 +110,7 @@ public class OracleMigrationMediumTest extends MigrationTestCase {
     }
 
     /**
-     * Tests parsing of object names that countain keywords such as MY_TABLE.
+     * Tests parsing of object names that contain keywords such as MY_TABLE.
      */
     @Test
     public void objectNames() throws FlywayException {
@@ -124,7 +132,7 @@ public class OracleMigrationMediumTest extends MigrationTestCase {
      * Test clean with recycle bin
      */
     @Test
-    public void cleanWithRecycleBin() {
+    public void cleanWithRecycleBin() throws Exception {
         assertEquals(0, recycleBinCount());
 
         // in SYSTEM tablespace the recycle bin is deactivated
@@ -139,14 +147,14 @@ public class OracleMigrationMediumTest extends MigrationTestCase {
     /**
      * @return The number of objects for the current user.
      */
-    private int objectsCount() {
+    private int objectsCount() throws Exception {
         return jdbcTemplate.queryForInt("select count(*) from user_objects");
     }
 
     /**
      * @return The number of objects in the recycle bin.
      */
-    private int recycleBinCount() {
+    private int recycleBinCount() throws Exception {
         return jdbcTemplate.queryForInt("select count(*) from recyclebin");
     }
 

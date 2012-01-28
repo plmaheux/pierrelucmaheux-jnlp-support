@@ -27,6 +27,7 @@ import com.googlecode.flyway.core.migration.Migration;
 import com.googlecode.flyway.core.migration.MigrationProvider;
 import com.googlecode.flyway.core.migration.SchemaVersion;
 import com.googlecode.flyway.core.util.ClassUtils;
+import com.googlecode.flyway.core.util.StringUtils;
 import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
 import com.googlecode.flyway.core.validation.DbValidator;
 import com.googlecode.flyway.core.validation.ValidationErrorMode;
@@ -35,7 +36,6 @@ import com.googlecode.flyway.core.validation.ValidationMode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -192,7 +192,7 @@ public class Flyway {
     /**
      * Retrieves the base directory on the classpath where the Sql migrations are located.
      *
-     * @return The base directory on the classpath where the Sql migrations are located. (default: sql/location)
+     * @return The base directory on the classpath where the Sql migrations are located. (default: db/migration)
      */
     public String getBaseDir() {
         return baseDir;
@@ -417,7 +417,7 @@ public class Flyway {
     /**
      * Sets the base directory on the classpath where the Sql migrations are located.
      *
-     * @param baseDir The base directory on the classpath where the Sql migrations are located. (default: sql/location)
+     * @param baseDir The base directory on the classpath where the Sql migrations are located. (default: db/migration)
      */
     public void setBaseDir(String baseDir) {
         this.baseDir = baseDir;
@@ -599,16 +599,20 @@ public class Flyway {
      * Releases the resources acquired.
      */
     private void performTearDown() {
-        try {
-            connectionMigration.close();
-        } catch (SQLException e) {
-            LOG.error("Failed to close database connection for migrations", e);
+        if (connectionMigration != null) {
+            try {
+                connectionMigration.close();
+            } catch (SQLException e) {
+                LOG.error("Failed to close database connection for migrations", e);
+            }
         }
 
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            LOG.error("Failed to close database connection for the metadata table", e);
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                LOG.error("Failed to close database connection for the metadata table", e);
+            }
         }
     }
 
@@ -876,12 +880,13 @@ public class Flyway {
      * @return The result of the command.
      */
     private <T> T execute(Command<T> command) {
-        performSetup();
-
-        T result = command.execute();
-
-        performTearDown();
-
+        T result;
+        try {
+            performSetup();
+            result = command.execute();
+        } finally {
+            performTearDown();
+        }
         return result;
     }
 

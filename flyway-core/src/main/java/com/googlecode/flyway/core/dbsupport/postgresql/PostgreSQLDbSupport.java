@@ -92,7 +92,6 @@ public class PostgreSQLDbSupport extends DbSupport {
         allDropStatements.addAll(generateDropStatementsForSequences(schema));
         allDropStatements.addAll(generateDropStatementsForBaseTypes(schema, true));
         allDropStatements.addAll(generateDropStatementsForRoutines(schema));
-        allDropStatements.addAll(generateDropStatementsForDomains(schema));
         allDropStatements.addAll(generateDropStatementsForEnums(schema));
         allDropStatements.addAll(generateDropStatementsForBaseTypes(schema, false));
 
@@ -205,26 +204,6 @@ public class PostgreSQLDbSupport extends DbSupport {
     }
 
     /**
-     * Generates the statements for dropping the domains in this schema.
-     *
-     * @param schema The schema for which to generate the statements.
-     * @return The drop statements.
-     * @throws SQLException when the clean statements could not be generated.
-     */
-    private List<String> generateDropStatementsForDomains(String schema) throws SQLException {
-        List<String> domainNames =
-                jdbcTemplate.queryForStringList(
-                        "SELECT domain_name FROM information_schema.domains WHERE domain_schema=?", schema);
-
-        List<String> statements = new ArrayList<String>();
-        for (String domainName : domainNames) {
-            statements.add("DROP DOMAIN IF EXISTS \"" + schema + "\".\"" + domainName + "\"");
-        }
-
-        return statements;
-    }
-
-    /**
      * Generates the statements for dropping the enums in this schema.
      *
      * @param schema The schema for which to generate the statements.
@@ -242,7 +221,7 @@ public class PostgreSQLDbSupport extends DbSupport {
 
         List<String> statements = new ArrayList<String>();
         for (String enumName : enumNames) {
-            statements.add("DROP TYPE IF EXISTS \"" + schema + "\".\"" + enumName + "\"");
+            statements.add("DROP TYPE \"" + schema + "\".\"" + enumName + "\"");
         }
 
         return statements;

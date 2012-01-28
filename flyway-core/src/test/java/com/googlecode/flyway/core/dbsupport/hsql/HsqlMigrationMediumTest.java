@@ -15,23 +15,21 @@
  */
 package com.googlecode.flyway.core.dbsupport.hsql;
 
-import com.googlecode.flyway.core.dbsupport.DbSupport;
 import com.googlecode.flyway.core.migration.MigrationTestCase;
 import com.googlecode.flyway.core.migration.SchemaVersion;
-import org.junit.Ignore;
+import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
+import org.hsqldb.jdbcDriver;
 import org.junit.Test;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 
 /**
  * Test to demonstrate the migration functionality using Hsql.
  */
-@ContextConfiguration(locations = {"classpath:migration/dbsupport/hsql/hsql-context.xml"})
 public class HsqlMigrationMediumTest extends MigrationTestCase {
     @Override
     public void setUp() throws Exception {
@@ -41,7 +39,7 @@ public class HsqlMigrationMediumTest extends MigrationTestCase {
             jdbcTemplate.execute("DROP SCHEMA flyway_1 CASCADE");
             jdbcTemplate.execute("DROP SCHEMA flyway_2 CASCADE");
             jdbcTemplate.execute("DROP SCHEMA flyway_3 CASCADE");
-        } catch (DataAccessException e) {
+        } catch (SQLException e) {
             //Dirty hack to compensate for the fact that DROP SCHEMA IF EXISTS is only available as of HsqlDB 2.0
         }
 
@@ -51,12 +49,17 @@ public class HsqlMigrationMediumTest extends MigrationTestCase {
     }
 
     @Override
+    protected DataSource createDataSource(Properties customProperties) {
+        return new DriverDataSource(new jdbcDriver(), "jdbc:hsqldb:mem:flyway_db", "SA", "");
+    }
+
+    @Override
     protected String getQuoteBaseDir() {
         return "migration/quote";
     }
 
     @Test
-    public void sequence() {
+    public void sequence() throws Exception {
         flyway.setBaseDir("migration/dbsupport/hsql/sql/sequence");
         flyway.migrate();
 
@@ -64,8 +67,7 @@ public class HsqlMigrationMediumTest extends MigrationTestCase {
         assertEquals("1", schemaVersion.toString());
         assertEquals("Sequence", flyway.status().getDescription());
 
-        assertEquals(666,
-                jdbcTemplate.queryForInt("CALL NEXT VALUE FOR the_beast"));
+        assertEquals(666, jdbcTemplate.queryForInt("CALL NEXT VALUE FOR the_beast"));
 
         flyway.clean();
         flyway.migrate();

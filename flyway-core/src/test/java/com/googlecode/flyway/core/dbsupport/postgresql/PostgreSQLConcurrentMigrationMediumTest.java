@@ -16,11 +16,22 @@
 package com.googlecode.flyway.core.dbsupport.postgresql;
 
 import com.googlecode.flyway.core.migration.ConcurrentMigrationTestCase;
-import org.springframework.test.context.ContextConfiguration;
+import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
+import org.postgresql.Driver;
+
+import javax.sql.DataSource;
+import java.util.Properties;
 
 /**
  * Test to demonstrate the migration functionality using PostgreSQL.
  */
-@ContextConfiguration(locations = {"classpath:migration/dbsupport/postgresql/postgresql-context.xml"})
 public class PostgreSQLConcurrentMigrationMediumTest extends ConcurrentMigrationTestCase {
+    @Override
+    protected DataSource createDataSource(Properties customProperties) {
+        String user = customProperties.getProperty("postgresql.user", "flyway");
+        String password = customProperties.getProperty("postgresql.password", "flyway");
+        String url = customProperties.getProperty("postgresql.url", "jdbc:postgresql://localhost/flyway_db");
+
+        return new DriverDataSource(new Driver(), url, user, password);
+    }
 }

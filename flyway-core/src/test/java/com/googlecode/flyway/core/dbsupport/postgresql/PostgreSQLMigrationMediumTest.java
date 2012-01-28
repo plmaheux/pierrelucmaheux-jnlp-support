@@ -15,11 +15,13 @@
  */
 package com.googlecode.flyway.core.dbsupport.postgresql;
 
-import com.googlecode.flyway.core.exception.FlywayException;
 import com.googlecode.flyway.core.migration.MigrationTestCase;
+import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
+import org.postgresql.Driver;
+
+import javax.sql.DataSource;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,8 +29,16 @@ import static org.junit.Assert.assertEquals;
  * Test to demonstrate the migration functionality using PostgreSQL.
  */
 @SuppressWarnings({"JavaDoc"})
-@ContextConfiguration(locations = {"classpath:migration/dbsupport/postgresql/postgresql-context.xml"})
 public class PostgreSQLMigrationMediumTest extends MigrationTestCase {
+    @Override
+    protected DataSource createDataSource(Properties customProperties) {
+        String user = customProperties.getProperty("postgresql.user", "flyway");
+        String password = customProperties.getProperty("postgresql.password", "flyway");
+        String url = customProperties.getProperty("postgresql.url", "jdbc:postgresql://localhost/flyway_db");
+
+        return new DriverDataSource(new Driver(), url, user, password);
+    }
+
     @Override
     protected String getQuoteBaseDir() {
         return "migration/quote";
@@ -42,8 +52,7 @@ public class PostgreSQLMigrationMediumTest extends MigrationTestCase {
         flyway.setBaseDir("migration/dbsupport/postgresql/sql/procedure");
         flyway.migrate();
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(migrationDataSource);
-        assertEquals("Hello", jdbcTemplate.queryForObject("SELECT value FROM test_data", String.class));
+        assertEquals("Hello", jdbcTemplate.queryForString("SELECT value FROM test_data"));
 
         flyway.clean();
 
@@ -73,7 +82,6 @@ public class PostgreSQLMigrationMediumTest extends MigrationTestCase {
         flyway.setBaseDir("migration/dbsupport/postgresql/sql/trigger");
         flyway.migrate();
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(migrationDataSource);
         assertEquals(10, jdbcTemplate.queryForInt("SELECT count(*) FROM test4"));
 
         flyway.clean();
@@ -91,7 +99,6 @@ public class PostgreSQLMigrationMediumTest extends MigrationTestCase {
         flyway.setBaseDir("migration/dbsupport/postgresql/sql/view");
         flyway.migrate();
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(migrationDataSource);
         assertEquals(150, jdbcTemplate.queryForInt("SELECT value FROM v"));
 
         flyway.clean();
@@ -122,8 +129,7 @@ public class PostgreSQLMigrationMediumTest extends MigrationTestCase {
         flyway.setBaseDir("migration/dbsupport/postgresql/sql/domain");
         flyway.migrate();
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(migrationDataSource);
-        assertEquals("foo", jdbcTemplate.queryForObject("SELECT x FROM t", String.class));
+        assertEquals("foo", jdbcTemplate.queryForString("SELECT x FROM t"));
 
         flyway.clean();
 
@@ -139,8 +145,7 @@ public class PostgreSQLMigrationMediumTest extends MigrationTestCase {
         flyway.setBaseDir("migration/dbsupport/postgresql/sql/enum");
         flyway.migrate();
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(migrationDataSource);
-        assertEquals("positive", jdbcTemplate.queryForObject("SELECT x FROM t", String.class));
+        assertEquals("positive", jdbcTemplate.queryForString("SELECT x FROM t"));
 
         flyway.clean();
 
@@ -152,7 +157,7 @@ public class PostgreSQLMigrationMediumTest extends MigrationTestCase {
      * Tests parsing support for $$ string literals.
      */
     @Test
-    public void dollarQuote() throws FlywayException {
+    public void dollarQuote() throws Exception {
         flyway.setBaseDir("migration/dbsupport/postgresql/sql/dollar");
         flyway.migrate();
         assertEquals(8, jdbcTemplate.queryForInt("select count(*) from dollar"));

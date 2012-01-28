@@ -15,9 +15,12 @@
  */
 package com.googlecode.flyway.commandline;
 
+import com.googlecode.flyway.core.util.ClassPathResource;
+import com.googlecode.flyway.core.util.ClassPathScanner;
+import com.googlecode.flyway.core.util.ClassUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.ClassUtils;
 
 import java.util.Properties;
 
@@ -30,13 +33,28 @@ import static org.junit.Assert.assertTrue;
  */
 @SuppressWarnings({"JavaDoc"})
 public class MainMediumTest {
+    /**
+     * The old classloader, to be restored after a test completes.
+     */
+    private ClassLoader oldClassLoader;
+
+    @Before
+    public void setUp() {
+        oldClassLoader = Thread.currentThread().getContextClassLoader();
+    }
+
+    @After
+    public void tearDown() {
+        Thread.currentThread().setContextClassLoader(oldClassLoader);
+    }
+
     @Test
     public void loadConfigurationFile() throws Exception {
         Properties properties = new Properties();
         properties.put("existing", "still there!");
         properties.put("override", "loses :-(");
 
-        String filename = new ClassPathResource("test.properties").getFile().getPath();
+        String filename = new ClassPathResource("test.properties").getLocationOnDisk();
         String[] args = new String[]{"-configFile=" + filename, "-configFileEncoding=UTF-8"};
 
         Main.loadConfigurationFile(properties, args);
@@ -52,12 +70,31 @@ public class MainMediumTest {
      */
     @Test
     public void addDirectoryToClasspath() throws Exception {
-        assertFalse(new ClassPathResource("runtime.properties").exists());
+        assertFalse(new ClassPathResource("pkg/runtime.properties").exists());
         
-        String folder = new ClassPathResource("dynamic").getFile().getPath();
+        String folder = new ClassPathResource("dynamic").getLocationOnDisk();
+        Main.addJarOrDirectoryToClasspath(folder);
+
+        assertTrue(new ClassPathResource("pkg/runtime.properties").exists());
+
+        ClassPathResource[] resources = new ClassPathScanner().scanForResources("pkg", "run", ".properties");
+        assertEquals("pkg/runtime.properties", resources[0].getLocation());
+    }
+
+    /**
+     * Tests dynamically adding a directory to the default package of classpath.
+     */
+    @Test
+    public void addDirectoryToClasspathDefaultPackage() throws Exception {
+        assertFalse(new ClassPathResource("runtime.properties").exists());
+
+        String folder = new ClassPathResource("dynamic/pkg").getLocationOnDisk();
         Main.addJarOrDirectoryToClasspath(folder);
 
         assertTrue(new ClassPathResource("runtime.properties").exists());
+
+        ClassPathResource[] resources = new ClassPathScanner().scanForResources("", "run", ".properties");
+        assertEquals("runtime.properties", resources[1].getLocation());
     }
 
     /**
@@ -66,14 +103,18 @@ public class MainMediumTest {
     @Test
     public void addJarToClasspath() throws Exception {
         assertFalse(new ClassPathResource("db/migration/V1.sql").exists());
-        assertFalse(ClassUtils.isPresent("com.googlecode.flyway.sample.migration.V1_2__Another_user",
-                Thread.currentThread().getContextClassLoader()));
+        assertFalse(ClassUtils.isPresent("com.googlecode.flyway.sample.migration.V1_2__Another_user"));
 
-        String jar = new ClassPathResource("flyway-sample.jar").getFile().getPath();
+        String jar = new ClassPathResource("flyway-sample.jar").getLocationOnDisk();
         Main.addJarOrDirectoryToClasspath(jar);
 
         assertTrue(new ClassPathResource("db/migration/V1.sql").exists());
-        assertTrue(ClassUtils.isPresent("com.googlecode.flyway.sample.migration.V1_2__Another_user",
-                Thread.currentThread().getContextClassLoader()));
+        assertTrue(ClassUtils.isPresent("com.googlecode.flyway.sample.migration.V1_2__Another_user"));
+
+        ClassPathResource[] resources = new ClassPathScanner().scanForResources("db/migration", "V", ".sql");
+        assertEquals("db/migration/V1.sql", resources[0].getLocation());
+
+        Class<?>[] classes = new ClassPathScanner().scanForClasses("com.googlecode.flyway.sample.migration");
+        assertEquals("com.googlecode.flyway.sample.migration.V1_2__Another_user", classes[0].getName());
     }
 }

@@ -15,29 +15,29 @@
  */
 package com.googlecode.flyway.core.dbsupport.h2;
 
-import com.googlecode.flyway.core.dbsupport.DbSupport;
 import com.googlecode.flyway.core.migration.MigrationTestCase;
 import com.googlecode.flyway.core.migration.SchemaVersion;
+import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
+import org.h2.Driver;
 import org.junit.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
 
-import java.sql.SQLException;
+import javax.sql.DataSource;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 
 /**
  * Test to demonstrate the migration functionality using H2.
  */
-@ContextConfiguration(locations = {"classpath:migration/dbsupport/h2/h2-context.xml"})
 public class H2MigrationMediumTest extends MigrationTestCase {
     @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS flyway_1");
-        jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS flyway_2");
-        jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS flyway_3");
+    protected DataSource createDataSource(Properties customProperties) {
+        DriverDataSource dataSource =
+                new DriverDataSource(new Driver(), "jdbc:h2:mem:flyway_db;DB_CLOSE_DELAY=-1", "sa", "");
+        dataSource.setInitSql("CREATE SCHEMA IF NOT EXISTS flyway_1;"
+                + "CREATE SCHEMA IF NOT EXISTS flyway_2;"
+                + "CREATE SCHEMA IF NOT EXISTS flyway_3;");
+        return dataSource;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class H2MigrationMediumTest extends MigrationTestCase {
     }
 
     @Test
-    public void dollarQuotedString() {
+    public void dollarQuotedString() throws Exception {
         flyway.setBaseDir("migration/dbsupport/h2/sql/dollar_quoted_string");
         flyway.migrate();
 
@@ -55,11 +55,11 @@ public class H2MigrationMediumTest extends MigrationTestCase {
         assertEquals("Populate table", flyway.status().getDescription());
 
         assertEquals("'Mr. Semicolon+Linebreak;\nanother line'",
-                jdbcTemplate.queryForObject("select name from test_user where name like '%line'''", String.class));
+                jdbcTemplate.queryForString("select name from test_user where name like '%line'''"));
     }
 
     @Test
-    public void sequence() {
+    public void sequence() throws Exception {
         flyway.setBaseDir("migration/dbsupport/h2/sql/sequence");
         flyway.migrate();
 
@@ -67,15 +67,14 @@ public class H2MigrationMediumTest extends MigrationTestCase {
         assertEquals("1", schemaVersion.toString());
         assertEquals("Sequence", flyway.status().getDescription());
 
-        assertEquals(666,
-                jdbcTemplate.queryForInt("select nextval('the_beast')"));
+        assertEquals(666, jdbcTemplate.queryForInt("select nextval('the_beast')"));
 
         flyway.clean();
         flyway.migrate();
     }
 
     @Test
-    public void domain() {
+    public void domain() throws Exception {
         flyway.setBaseDir("migration/dbsupport/h2/sql/domain");
         flyway.migrate();
 
@@ -83,8 +82,7 @@ public class H2MigrationMediumTest extends MigrationTestCase {
         assertEquals("1", schemaVersion.toString());
         assertEquals("Domain", flyway.status().getDescription());
 
-        assertEquals("axel@spam.la",
-                jdbcTemplate.queryForObject("select address from test_user where name = 'Axel'", String.class));
+        assertEquals("axel@spam.la", jdbcTemplate.queryForString("select address from test_user where name = 'Axel'"));
 
         flyway.clean();
         flyway.migrate();

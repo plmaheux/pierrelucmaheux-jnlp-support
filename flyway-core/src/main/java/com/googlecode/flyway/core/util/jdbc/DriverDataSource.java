@@ -76,6 +76,23 @@ public class DriverDataSource implements DataSource {
     }
 
     /**
+     * Creates a new DriverDataSource.
+     *
+     * @param driverClass The name of the JDBC Driver class to use.
+     * @param url The JDBC URL to use for connecting through the Driver.
+     * @param user The JDBC user to use for connecting through the Driver.
+     * @param password The JDBC password to use for connecting through the Driver.
+     *
+     * @throws Exception when the driver class can not be instantiated.
+     */
+    public DriverDataSource(String driverClass, String url, String user, String password) throws Exception {
+        this.driver = ClassUtils.instantiate(driverClass);
+        this.url = url;
+        this.user = user;
+        this.password = password;
+    }
+
+    /**
      * @param driver The JDBC Driver instance to use.
      */
     public void setDriver(Driver driver) {
@@ -187,7 +204,7 @@ public class DriverDataSource implements DataSource {
      * @throws SQLException in case of failure
      * @see java.sql.Driver#connect(String, java.util.Properties)
      */
-    private Connection getConnectionFromDriver(String username, String password) throws SQLException {
+    protected Connection getConnectionFromDriver(String username, String password) throws SQLException {
         Properties props = new Properties();
         if (username != null) {
             props.setProperty("user", username);

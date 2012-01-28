@@ -16,11 +16,21 @@
 package com.googlecode.flyway.core.dbsupport.sqlserver;
 
 import com.googlecode.flyway.core.migration.ConcurrentMigrationTestCase;
-import org.springframework.test.context.ContextConfiguration;
+import com.googlecode.flyway.core.util.jdbc.DriverDataSource;
+
+import javax.sql.DataSource;
+import java.util.Properties;
 
 /**
  * Test to demonstrate the migration functionality using SQL Server with the Microsoft driver.
  */
-@ContextConfiguration(locations = {"classpath:migration/dbsupport/sqlserver/sqlserver-ms-context.xml"})
 public class MsSQLServerConcurrentMigrationMediumTest extends ConcurrentMigrationTestCase {
+    @Override
+    protected DataSource createDataSource(Properties customProperties) throws Exception {
+        String user = customProperties.getProperty("sqlserver.user", "sa");
+        String password = customProperties.getProperty("sqlserver.password", "flyway");
+        String url = customProperties.getProperty("sqlserver.ms_url", "jdbc:sqlserver://localhost:1433;databaseName=flyway_db");
+
+        return new DriverDataSource("com.microsoft.sqlserver.jdbc.SQLServerDriver", url, user, password);
+    }
 }
